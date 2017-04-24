@@ -1,0 +1,45 @@
+= install kubernaties inside docker (ubuntu) using kubeadm (solved)
+
+----
+docker build -t kubeadm_docker .
+docker run -it \
+  -- name kubemaster \
+  -e "container=docker" \
+  --privileged=true -d \
+  --security-opt seccomp:unconfined \
+  --cap-add=SYS_ADMIN \
+  -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  kubeadm_docker /sbin/init
+docker exec -it kubemaster bash
+----
+
+----
+apt update -y
+apt upgrade -y
+systemctl start docker
+
+echo "Install os requirements"
+apt install -y curl apt-transport-https dialog python daemon
+
+echo "Add Kubernetes repo..."
+sh -c 'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -'
+sh -c 'echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list'
+apt update -y
+
+echo "Installing Kubernetes requirements..."
+apt install -y kubelet
+
+# This is temporary fix until new version will be released
+sed -i 38,40d /var/lib/dpkg/info/kubelet.postinst
+
+apt install -y kubernetes-cni kubectl kubeadm
+
+kubeadm init --skip-preflight-checks
+
+----
+
+issues (install kubernaties inside docker, ubuntu):
+
+- https://github.com/kubernetes/kubernetes/issues/35712
+- https://github.com/kubernetes/kubeadm/issues/17

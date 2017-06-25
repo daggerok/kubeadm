@@ -3,7 +3,7 @@
 ----
 docker build -t kubeadm_docker .
 docker run -it \
-  -- name kubemaster \
+  --name kubemaster \
   -e "container=docker" \
   --privileged=true -d \
   --security-opt seccomp:unconfined \
